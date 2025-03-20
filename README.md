@@ -61,9 +61,29 @@ This is where the dataset was imported and loaded in PostgreSQL.
 
 1. To import the data, a table was created first.
 
-![data_extraction](assets/images/data_import_create_table.png)
+ ```sql
 
-2. Data was then inserted to the table using PSQL command.
+CREATE TABLE vg_sales(
+    id SERIAL PRIMARY KEY,  			-- Auto-incrementing unique ID
+    title VARCHAR(255) NOT NULL,  		-- Game title
+    console VARCHAR(50) NOT NULL,  		-- Platform (PS4, X360, etc.)
+    genre VARCHAR(50) NOT NULL,  		-- Game genre
+    publisher VARCHAR(255),  			-- Publisher name
+    developer VARCHAR(255),  			-- Developer name
+    critic_score DECIMAL(3,1),  		-- Critic score (e.g., 9.5)
+    total_sales DECIMAL(10,2),  		-- Total sales in millions
+    na_sales DECIMAL(10,2),  			-- Sales in North America (millions)
+    jp_sales DECIMAL(10,2),  			-- Sales in Japan (millions)
+    pal_sales DECIMAL(10,2),  			-- Sales in PAL regions (Europe, etc.) (millions)
+    other_sales DECIMAL(10,2),  		-- Sales in other regions (millions)
+    release_date DATE,  			-- Release date of the game
+    last_update DATE  				-- Date of last data update
+);
+
+
+```  
+
+2. Data was then inserted to the table using PSQL tool.
 
  ```sql
 -- =========================================================
@@ -75,8 +95,6 @@ PSQL command to insert the data into PostgreSQL
 
 ```  
 
-![data_extraction](assets/images/data_import_insertinto_table.png)
-
 
 
 # Data Exploration and Cleaning
@@ -85,25 +103,119 @@ This is where the dataset was explored to get familiar with the data structure a
 
 1. Checking and removing duplicates.
 
-![data_exploration_cleaning](assets/images/checking_deleting_duplicates.png)
+ ```sql
+
+-- USING WINDOW_FUNCTION
+SELECT id
+FROM
+	(SELECT 
+		*,
+		ROW_NUMBER() OVER(PARTITION BY title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update) AS rn
+	 FROM vg_sales)
+WHERE rn <> 1;
+
+
+-- USING MAX() AND GROUP BY CLAUSE
+SELECT MAX(id)
+FROM vg_sales
+GROUP BY title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update
+HAVING COUNT(*) > 1;
+
+
+-- DELETING DUPLICATE VALUES FROM TABLE
+DELETE FROM vg_sales
+WHERE id IN (SELECT MAX(id)
+			 FROM vg_sales
+			 GROUP BY title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update
+			 HAVING COUNT(*) > 1);
+
+
+```  
+
 
 2. Checking and removing any unusual characters.
 
   - Titles
 
-![data_exploration_cleaning](assets/images/extra_characters_title.png)
+ ```sql
 
-![ddata_exploration_cleaning](assets/images/extra_characters_title2.png)
+-- --------------------------------------------------
+CLEANING AND REMOVING EXTRA CHARACTERS FROM 'TITLES'
+-- --------------------------------------------------		
+
+-- checking titles with unusual characters as observed during data exploration phase and comparing original title with cleaned title
+SELECT title, TRIM(REPLACE(REPLACE(REPLACE(title, '//', ''), '.hack', ''), ':', '')) AS title
+FROM vg_sales
+WHERE title ILIKE '%.hack%';
+
+-- updating clean values of title in the table 
+UPDATE vg_sales
+SET title = TRIM(REPLACE(REPLACE(REPLACE(title, '//', ''), '.hack', ''), ':', ''))
+WHERE title ILIKE '%.hack%';
+
+-- double checking if table has been updated
+SELECT *
+FROM vg_sales
+WHERE title ILIKE '%.hack%';
+
+
+```  
 
   - Publisher
      
-![data_exploration_cleaning](assets/images/unusual_characters_publisher.png)
+ ```sql
 
-![data_exploration_cleaning](assets/images/unusual_characters_publisher2.png)
+-- --------------------------------------------------
+CLEANING AND REPLACING VALUES FROM 'PUBLISHER'
+-- --------------------------------------------------	
+
+-- checking publisher names with unusual characters as observed during the data exploration phase
+SELECT *
+FROM vg_sales
+WHERE publisher ILIKE '%08%';
+
+-- checking other table values where title and developer is the same 
+
+SELECT *
+FROM vg_sales
+WHERE (title, developer) IN (SELECT title, developer
+			     FROM vg_sales
+			     WHERE publisher ILIKE '%08%');
+
+-- updating the publisher name as 'Toby Fox' in the table based from the results above
+
+UPDATE vg_sales
+SET publisher = 'Toby Fox'
+WHERE publisher ILIKE '%08%';
+
+```
+
 
 3. Checking and removing any NULL values.
- 
-![data_exploration_cleaning](assets/images/remove_null_values2.png)
+
+ ```sql
+
+-- Checking null values for total_sales as these values would be irrelevant to the analysis
+
+SELECT *
+FROM vg_sales
+WHERE total_sales IS NULL or total_sales = 0;
+
+-- Removing null values from the table
+
+DELETE FROM vg_sales
+WHERE total_sales IS NULL or total_sales = 0;
+
+-- Checking null values for released_date as these values would be irrelevant to the analysis
+
+SELECT *
+FROM vg_sales
+WHERE release_date IS NULL
+
+-- Removing null values from the table
+
+DELETE FROM vg_sales
+WHERE release_date IS NULL;
 
 Additional Notes:
 
@@ -112,6 +224,7 @@ Additional Notes:
 - Null values per ‘region’ are valid as some games may be sold in one region only or not in all regions
 - Null values in ‘last update’ are valid since they indicate if a game has been updated or not.
 
+```
 
 
 # Data Transformation
@@ -123,9 +236,6 @@ After cleaning the data, this is where the cleaned data was tranformed to provid
 **1. Total Sales: Sum of all video game sales**
 
  ```sql
--- ----------------------------
-	  	  Total Sales
--- ----------------------------
 
 SELECT 
     SUM(total_sales) AS total_sales
@@ -141,9 +251,6 @@ FROM vg_sales;
 **2. Regional Sales Distribution: Sales in NA, JP, PAL (Europe/Australia), and other regions.**
 
  ```sql
--- ----------------------------------------
-	    Regional Sales Distribution
--- ----------------------------------------
 
 SELECT
 	'North America' AS region,
@@ -176,9 +283,6 @@ ORDER BY total_sales DESC;
 **3. Top-Selling Games: Best selling games of all time**
 
  ```sql
--- ----------------------------------------
-	    Top-Selling Games of All Time
--- ----------------------------------------
 
 SELECT
 	title,
@@ -199,9 +303,6 @@ LIMIT 10;
 **4. Platform Performance: Sales comparisons across consoles**
 
  ```sql
--- -----------------------------------------
-	 Best Performing Consoles of All Time 
--- -----------------------------------------
 
 SELECT
 	console,
@@ -222,9 +323,6 @@ LIMIT 10;
 **5. Genre Performance: Sales comparisons across genres**
 
  ```sql
--- -----------------------------------------
-	 Most Popular Game Genres by Sales
--- -----------------------------------------
 
 SELECT
 	genre,
@@ -245,9 +343,6 @@ LIMIT 10;
 **6. Publisher Success: Total and average sales per publisher.**
 
  ```sql
--- -----------------------------------------------
-	 Sales Leaders: Best-Performing Publishers
--- -----------------------------------------------
 
 SELECT
 	publisher,
@@ -270,9 +365,6 @@ LIMIT 10;
 **7. Critic Score Impact: Correlation between critic scores and sales.**
 
  ```sql
--- --------------------------------------------------
-	 Critic Scores vs. Sales: Measuring the Impact
--- --------------------------------------------------
 
 SELECT
 	CASE
@@ -301,9 +393,6 @@ ORDER BY critic_score_group;
 **8. Yearly Sales Trend: Sales comparison throughout the years.**
 
  ```sql
--- -----------------------------
-	 Video Game Sales Trends
--- -----------------------------
 
 SELECT
 	year,
