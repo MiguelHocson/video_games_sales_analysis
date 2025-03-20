@@ -10,15 +10,9 @@ This SQL project focuses on exploring, cleaning, and transforming video game sal
 - [Objective](#objective)
 - [Data Source](#data-source)
 - [Stages](#stages)
-- [Design](#design)
-- [Development](#development)
-  - [Process Outline](#process-outline)
-  - [Data Extraction](#data-extraction)
-  - [Data Exploration and Cleaning](#data-exploration-and-cleaning)
-  - [Data Transformation and Manipulation](#data-transformation-and-manipulation)
-  - [Data Modeling](#data-modeling)
-- [Visualization](#visualization)
-  - [Dashboard](#dashboard)
+- [Data Import & Loading](#data-import-and-loading)
+- [Data Exploration and Cleaning](#data-exploration-and-cleaning)
+- [Data Transformation](#data-transformation)
 - [Analysis & Findings](#analysis-and-findings)
 - [Recommendations](#recommendations)
 
@@ -515,7 +509,7 @@ top_publishers_yearly AS (
 count_appearances AS (
 	SELECT
 		publisher,
-		COUNT(*) AS n_topcount
+		COUNT(DISTINCT title) AS n_topcount
 	FROM top_publishers_yearly
 	GROUP BY publisher
 )
@@ -536,7 +530,7 @@ ORDER BY tp.publisher, tp.year;
 
 ```
 
-![data_transformation](assets/images/multiyear_best_publishers_and_games.png)
+![data_transformation](assets/images/multiyear_best_publishers_and_games2.png)
 
 
 
@@ -826,3 +820,25 @@ WHERE rnk <= 3;										       -- returns top 3 genres per region
 ```
 
 ![data_transformation](assets/images/preferred_genres_region.png)
+
+
+
+
+# Analysis & Findings
+
+1. Grand Theft Auto (Rockstar Games) and Call of Duty (Activision) stand as two of the most dominant gaming franchises across all consoles, consistently ranking among the best-selling video games of all time.
+2. Activision, Atari, and Rockstar Games have emerged as some of the most successful video game publishers, each securing the top-selling game spot multiple times. However, only Activision and Rockstar Games continue to produce games that remain relevant to this day.
+3. The video game market experienced a boom from 1993 to 2008, reaching its peak before entering a steady decline through 2020. Possible factors behind this downturn include shifting consumer preferences, market oversaturation, and the emergence of alternative gaming platforms such as mobile gaming.
+4. Publishers like Activision, Rockstar Games, EA Sports, and Electronic Arts have significantly benefited from releasing games on multiple platforms, with the majority of their sales driven by multiplatform titles. In contrast, Sony Computer Entertainment, Konami, and Nintendo have generated more profits in exclusive, single-platform releases.
+5. Critic scores play a crucial role in a game's longevity, relevance, and commercial success, with higher ratings often translating into stronger sales. However, exceptions exist—some highly rated games have failed commercially, while some lower-rated titles have achieved above-average sales.
+6. Sports and Action are the most profitable and widely popular gaming genres across all regions. However, in markets such as North America and Japan, Sports games tend to be more profitable and less saturated compared to the highly competitive Action genre.
+
+
+# Recommendations
+
+1. Publishers should continue investing in established franchises like Grand Theft Auto and Call of Duty, which have consistently dominated sales.
+2. Releasing games on multiple platforms can significantly boost overall sales, as seen with Activision and Rockstar Games. Investors should prioritize companies that focus on cross-platform compatibility.
+3. The decline in traditional video game sales after 2008 suggests shifting consumer behavior. Hence, publishers and investors should explore emerging markets. 
+4. Games with high critic scores generally perform well in sales, so publishers should prioritize quality assurance, engaging storytelling, and polished gameplay.
+5. Publishers should implement frequent game updates and remastered versions—especially for highly successful franchises. Meanwhile, investors should focus on backing companies that have successfully implemented continuous updates to extend a game’s lifecycle and revenue stream.
+6. Publishers should focus on expanding on Sports and Action genres since these are the most profitable globally, while still tailoring content for different regional markets.
