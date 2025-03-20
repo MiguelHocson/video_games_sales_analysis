@@ -89,10 +89,14 @@ This is where the dataset was explored to get familiar with the data structure a
 
 2. Checking and removing any unusual characters.
 
+  1. Titles
+
 ![data_exploration_cleaning](assets/images/extra_characters_title.png)
 
 ![ddata_exploration_cleaning](assets/images/extra_characters_title2.png)
 
+  2. Publisher
+     
 ![data_exploration_cleaning](assets/images/unusual_characters_publisher.png)
 
 ![data_exploration_cleaning](assets/images/unusual_characters_publisher2.png)
@@ -103,10 +107,10 @@ This is where the dataset was explored to get familiar with the data structure a
 
 Additional Notes:
 
--- Two null values in ‘developer’. The analysis will be based on the ‘publisher’, not the ‘developer’.
--- Multiple null values in ‘critic score’. Trends of missing ‘critic score’ can be analyzed.
--- Null values per ‘region’ are valid as some games may be sold in one region only or not in all regions
--- Null values in ‘last update’ are valid since they indicate if a game has been updated or not.
+- Two null values in ‘developer’. The analysis will be based on the ‘publisher’, not the ‘developer’.
+- Multiple null values in ‘critic score’. Trends of missing ‘critic score’ can be analyzed.
+- Null values per ‘region’ are valid as some games may be sold in one region only or not in all regions
+- Null values in ‘last update’ are valid since they indicate if a game has been updated or not.
 
 
 
