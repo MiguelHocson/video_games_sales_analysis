@@ -132,7 +132,11 @@ SELECT
 FROM vg_sales;
 
 
-```  
+```
+
+![data_transformation](assets/images/total_sales.png)
+
+
 
 **2. Regional Sales Distribution: Sales in NA, JP, PAL (Europe/Australia), and other regions.**
 
@@ -165,6 +169,10 @@ ORDER BY total_sales DESC;
 
 ```  
 
+![data_transformation](assets/images/regional_sales_distrib.png)
+
+
+
 **3. Top-Selling Games: Best selling games of all time**
 
  ```sql
@@ -182,6 +190,11 @@ LIMIT 10;
 
 
 ```
+
+![data_transformation](assets/images/top_selling_games_all_time.png)
+
+
+
 
 **4. Platform Performance: Sales comparisons across consoles**
 
@@ -202,6 +215,9 @@ LIMIT 10;
 
 ```
 
+![data_transformation](assets/images/best_performing_consoles.png)
+
+
 
 **5. Genre Performance: Sales comparisons across genres**
 
@@ -220,6 +236,10 @@ LIMIT 10;
 
 
 ```
+
+![data_transformation](assets/images/most_popular_by_genre.png)
+
+
 
 
 **6. Publisher Success: Total and average sales per publisher.**
@@ -241,6 +261,11 @@ LIMIT 10;
 
 
 ```
+
+![data_transformation](assets/images/sales_leaders_publishers.png)
+
+
+
 
 **7. Critic Score Impact: Correlation between critic scores and sales.**
 
@@ -268,6 +293,11 @@ ORDER BY critic_score_group;
 
 ```
 
+
+![data_transformation](assets/images/critic_score_sales.png)
+
+
+
 **8. Yearly Sales Trend: Sales comparison throughout the years.**
 
  ```sql
@@ -291,7 +321,12 @@ FROM
 ;
 
 
-```  
+```
+
+
+![data_transformation](assets/images/yearly_sales_trend.png)
+
+![data_transformation](assets/images/yearly_sales_trend2.png)
 
 
 ## Key Requirements and Questions
@@ -344,6 +379,9 @@ ORDER BY sr.year;
 
 
 ```
+
+![data_transformation](assets/images/top_3_selling_games_record_breaking_years.png)
+
 
 
 **2. Which publishers have repeatedly produced the best-selling game of the year? Which games contributed to their success?**
@@ -409,6 +447,10 @@ ORDER BY tp.publisher, tp.year;
 
 ```
 
+![data_transformation](assets/images/multiyear_best_publishers_and_games.png)
+
+
+
 **3. What are the highest-grossing games that launched on multiple consoles, and which platform generated the highest sales?**
 
  ```sql
@@ -464,6 +506,9 @@ LIMIT 10;
 
 
 ```
+
+![data_transformation](assets/images/top_multiplatform_games_and_consoles.png)
+
 
 
 **4. How do multiplatform games impact the overall sales of a publisher compared to single-platformed games?**
@@ -522,61 +567,55 @@ LIMIT 20;
 
 ```
 
+![data_transformation](assets/images/publishers_single_vs_multi_sales.png)
+
+
+
 **5. How often do critic scores align with sales? Which top-rated games struggled commercially, and which low-rated games still sold remarkably well?**
 
  ```sql
 
--- Overall sales per publisher
-WITH overall_sales AS (
-	SELECT
-		publisher,
-		SUM(total_sales) AS overall_sales							
-	FROM vg_sales 
-	GROUP BY publisher
-),
+-- Highly-rated (critic_score: 8-10)
+-- Low-rate (critic_score: 1-4)
 
--- sales of single and multi-platformed games per publisher
-div_sales AS (
+WITH game_critic_sales AS (
 	SELECT
-		publisher,
 		title,
-		SUM(total_sales) AS total_sales,		           -- Overall sum of a game's total sales across all consoles
-		COUNT(DISTINCT console) AS n_consoles                      -- Count of distinct consoles where the game is available
+		ROUND(AVG(critic_score),2) AS avg_critic_score,					-- AVG critic score across all consoles 
+		SUM(total_sales) AS total_sales						            -- Sum of total sales across all consoles
 	FROM vg_sales
-	GROUP BY publisher, title					   -- Grouped by publisher then title to segregate sales and count for single and multi-platformed games
+	WHERE critic_score IS NOT NULL											-- filter games with available critic_score only
+	GROUP BY title
 ),
-singleplatform_sales AS (
-	SELECT
-		publisher,
-		SUM(total_sales) AS total_single_sales			   -- Total sales of single platform games per publisher 
-	FROM div_sales
-	WHERE n_consoles = 1						   -- Filter single platform games
-	GROUP BY publisher
-),
-multiplatform_sales AS (
-	SELECT
-		publisher,
-		SUM(total_sales) AS total_multi_sales			   -- Total sales of multi-platform games per publisher
-	FROM div_sales
-	WHERE n_consoles > 1						   -- Filter multi-platform games
-	GROUP BY publisher
+avg_sales AS (
+    SELECT AVG(total_sales) AS overall_avg_sales 					        -- Avg sales of games with avaialble critic scores
+	FROM game_critic_sales
 )
 
 
 SELECT
-	o.publisher,
-	CONCAT(ROUND((s.total_single_sales / o.overall_sales) * 100, 2), '%') AS perc_singleplatform_games,        -- sales of single platform games / overall sales (per publisher)
-	CONCAT(ROUND((m.total_multi_sales / o.overall_sales) * 100, 2), '%') AS perc_multiplatform_games,	   -- sales of multi-platform games / overall sales (per publisher)
-	o.overall_sales												   -- overall sales per publisher
-FROM overall_sales AS o
-INNER JOIN singleplatform_sales AS s ON o.publisher = s.publisher						   -- Inner join to return publishers with both single and multi-platform games																				 
-INNER JOIN multiplatform_sales AS m ON o.publisher = m.publisher						   -- Inner join to return publishers with both single and multi-platform games																		
-ORDER BY o.overall_sales DESC
-LIMIT 20;
+	title,
+	avg_critic_score,
+	total_sales,
+	CASE 
+        WHEN avg_critic_score <= 4 AND total_sales > overall_avg_sales 
+            THEN 'Low-rated High Sales'
+        WHEN avg_critic_score >= 8 AND total_sales < overall_avg_sales
+            THEN 'High-rated Low Sales'
+        ELSE NULL
+    END AS category
+FROM game_critic_sales, avg_sales											 -- cross join of a scalar value (implicitly joins every single row)
+WHERE (avg_critic_score <= 4 AND total_sales > overall_avg_sales) OR
+	  (avg_critic_score >= 8 AND total_sales < overall_avg_sales)
+ORDER BY avg_critic_score DESC;
+
 
 
 
 ```
+
+![data_transformation](assets/images/high_low_rating_sales.png)
+
 
 
 **6. Which best-selling games have remained relevant over time, and does the critic score play a role in their longevity?**
@@ -628,6 +667,10 @@ LIMIT 10;
 
 
 ```
+
+![data_transformation](assets/images/best_selling_relevant_games.png)
+
+
 
 **7. How do gaming preferences differ across different regions? Which genres lead in sales for each region?**
 
@@ -692,3 +735,5 @@ WHERE rnk <= 3;										       -- returns top 3 genres per region
 
 
 ```
+
+![data_transformation](assets/images/preferred_genres_region.png)
