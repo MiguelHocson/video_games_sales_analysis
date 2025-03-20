@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/2c0b1026-5807-4a31-9d96-a8a5a5f4ad72)# SQL Project: Video Games Sales Analysis
+# SQL Project: Video Games Sales Analysis
 
 # Overview
 
