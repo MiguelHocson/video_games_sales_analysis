@@ -232,7 +232,7 @@ After cleaning the data, this is where the cleaned data was transformed to gener
 
 ## Key Performance Metrics
 
-1. **Total Sales:** Sum of all video game sales
+ **1.Total Sales:** Sum of all video game sales
 
  ```sql
 
@@ -247,7 +247,7 @@ FROM vg_sales;
 
 
 
-2. **Regional Sales Distribution:** Sales in NA, JP, PAL (Europe/Australia), and other regions.
+**2. Regional Sales Distribution:** Sales in NA, JP, PAL (Europe/Australia), and other regions.
 
  ```sql
 
@@ -279,7 +279,7 @@ ORDER BY total_sales DESC;
 
 
 
-3. **Top-Selling Games:** Best selling games of all time
+**3. Top-Selling Games:** Best selling games of all time
 
  ```sql
 
@@ -299,7 +299,7 @@ LIMIT 10;
 
 
 
-4. **Platform Performance:** Sales comparisons across consoles
+**4. Platform Performance:** Sales comparisons across consoles
 
  ```sql
 
@@ -319,8 +319,9 @@ LIMIT 10;
 
 
 
-5. **Genre Performance:** Sales comparisons across genres
- ```sql
+**5. Genre Performance:** Sales comparisons across genres
+
+```sql
 
 SELECT
 	genre,
@@ -338,7 +339,7 @@ LIMIT 10;
 
 
 
-6. **Publisher Success:** Total and average sales per publisher.
+**6. Publisher Success:** Total and average sales per publisher.
 
  ```sql
 
@@ -360,7 +361,7 @@ LIMIT 10;
 
 
 
-7. **Critic Score Impact:** Correlation between critic scores and sales.
+**7. Critic Score Impact:** Correlation between critic scores and sales.
 
  ```sql
 
@@ -388,7 +389,7 @@ ORDER BY critic_score_group;
 
 
 
-8. **Yearly Sales Trend:** Sales comparison throughout the years.
+**8. Yearly Sales Trend:** Sales comparison throughout the years.
 
  ```sql
 
