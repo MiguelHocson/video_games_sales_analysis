@@ -84,7 +84,7 @@ CREATE TABLE vg_sales(
 PSQL command to insert the data into PostgreSQL
 -- =========================================================
 
-\copy public.vg_sales(title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update) FROM 'C:/Users/Mico/OneDrive/Documents/DATA ANALYTICS/End to End Projects/Video Games/New folder/vgchartz-2024.csv' WITH (FORMAT csv, HEADER, DELIMITER ',', ENCODING 'UTF8', QUOTE '"', ESCAPE '''');![image](https://github.com/user-attachments/assets/defd3ea7-ef3a-42db-aedd-68781c921987)
+\copy public.vg_sales(title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update) FROM 'C:/Users/File_Pathway' WITH (FORMAT csv, HEADER, DELIMITER ',', ENCODING 'UTF8', QUOTE '"', ESCAPE '''');![image](https://github.com/user-attachments/assets/defd3ea7-ef3a-42db-aedd-68781c921987)
 
 
 ```  
@@ -93,7 +93,7 @@ PSQL command to insert the data into PostgreSQL
 
 # Data Exploration and Cleaning
 
-This is where the dataset was explored to get familiar with the data structure and data types, as well as to determine if there are any data anomalies such as missing or NULL values, duplicate rows and unusual characters that needs to be corrected. 
+This is where the dataset was explored to become familiar with the data structure and data types, as well as to identify any anomalies, such as missing or NULL values, duplicate rows, and unusual characters that need to be corrected.
 
 1. Checking and removing duplicates.
 
@@ -127,7 +127,7 @@ WHERE id IN (SELECT MAX(id)
 ```  
 
 
-2. Checking and removing any unusual characters.
+2. Checking for and removing any unusual characters.
 
   - Titles
 
@@ -154,6 +154,9 @@ WHERE title ILIKE '%.hack%';
 
 
 ```  
+
+![data_transformation](assets/images/extra_char_title.png)
+
 
   - Publisher
      
@@ -184,6 +187,8 @@ WHERE publisher ILIKE '%08%';
 
 ```
 
+![data_transformation](assets/images/unusual_charac_publisher.png)
+
 
 3. Checking and removing any NULL values.
 
@@ -213,21 +218,21 @@ WHERE release_date IS NULL;
 
 Additional Notes:
 
-- Two null values in ‘developer’. The analysis will be based on the ‘publisher’, not the ‘developer’.
-- Multiple null values in ‘critic score’. Trends of missing ‘critic score’ can be analyzed.
+- Two null values in 'developer’. The analysis will be based on the ‘publisher’, not the ‘developer’.
+- Multiple null values in ‘critic score’. Trends of games with missing ‘critic score’ can be analyzed.
 - Null values per ‘region’ are valid as some games may be sold in one region only or not in all regions
-- Null values in ‘last update’ are valid since they indicate if a game has been updated or not.
+- Null values in ‘last update’ are valid since they can indicate if a game has been updated or not.
 
 ```
 
 
 # Data Transformation
 
-After cleaning the data, this is where the cleaned data was tranformed to provide the required key metrics and answer key questions.   
+After cleaning the data, this is where the cleaned data was transformed to generate the required metrics and answer critical questions.
 
 ## Key Performance Metrics
 
-**1. Total Sales: Sum of all video game sales**
+1. **Total Sales:** Sum of all video game sales
 
  ```sql
 
@@ -242,7 +247,7 @@ FROM vg_sales;
 
 
 
-**2. Regional Sales Distribution: Sales in NA, JP, PAL (Europe/Australia), and other regions.**
+2. **Regional Sales Distribution:** Sales in NA, JP, PAL (Europe/Australia), and other regions.
 
  ```sql
 
@@ -257,7 +262,7 @@ SELECT
 FROM vg_sales
 UNION ALL
 SELECT
-	'Europe & Africa' AS region,
+	'Europe & Australia' AS region,
 	 SUM(pal_sales) AS total_sales
 FROM vg_sales
 UNION ALL
@@ -274,7 +279,7 @@ ORDER BY total_sales DESC;
 
 
 
-**3. Top-Selling Games: Best selling games of all time**
+3. **Top-Selling Games:** Best selling games of all time
 
  ```sql
 
@@ -294,7 +299,7 @@ LIMIT 10;
 
 
 
-**4. Platform Performance: Sales comparisons across consoles**
+4. **Platform Performance:** Sales comparisons across consoles
 
  ```sql
 
@@ -314,8 +319,7 @@ LIMIT 10;
 
 
 
-**5. Genre Performance: Sales comparisons across genres**
-
+5. **Genre Performance:** Sales comparisons across genres
  ```sql
 
 SELECT
@@ -334,7 +338,7 @@ LIMIT 10;
 
 
 
-**6. Publisher Success: Total and average sales per publisher.**
+6. **Publisher Success:** Total and average sales per publisher.
 
  ```sql
 
@@ -356,7 +360,7 @@ LIMIT 10;
 
 
 
-**7. Critic Score Impact: Correlation between critic scores and sales.**
+7. **Critic Score Impact:** Correlation between critic scores and sales.
 
  ```sql
 
@@ -384,7 +388,7 @@ ORDER BY critic_score_group;
 
 
 
-**8. Yearly Sales Trend: Sales comparison throughout the years.**
+8. **Yearly Sales Trend:** Sales comparison throughout the years.
 
  ```sql
 
@@ -434,7 +438,7 @@ highestsales_year AS (
 		SUM(total_sales) AS total_sales                
 	FROM yearly_sales
 	GROUP BY year
-	HAVING SUM(total_sales) >= 100.0					
+	HAVING SUM(total_sales) >= 100.0		-- Filtering years where sum of total sales is >= 100M		
 ),
 
 -- Ranking sales per year from highest to lowest
@@ -665,9 +669,9 @@ WITH game_critic_sales AS (
 	SELECT
 		title,
 		ROUND(AVG(critic_score),2) AS avg_critic_score,					-- AVG critic score across all consoles 
-		SUM(total_sales) AS total_sales						            -- Sum of total sales across all consoles
+		SUM(total_sales) AS total_sales						        -- Sum of total sales across all consoles
 	FROM vg_sales
-	WHERE critic_score IS NOT NULL											-- filter games with available critic_score only
+	WHERE critic_score IS NOT NULL								-- filter games with available critic_score only
 	GROUP BY title
 ),
 avg_sales AS (
@@ -681,13 +685,13 @@ SELECT
 	avg_critic_score,
 	total_sales,
 	CASE 
-        WHEN avg_critic_score <= 4 AND total_sales > overall_avg_sales 
+        WHEN avg_critic_score <= 4 AND total_sales > overall_avg_sales 			       -- Critic score less than 4 (low-ratings) and total sales higher than overall average
             THEN 'Low-rated High Sales'
-        WHEN avg_critic_score >= 8 AND total_sales < overall_avg_sales
+        WHEN avg_critic_score >= 8 AND total_sales < overall_avg_sales			       -- Critic score greather than 8 (high-ratings) and total sales lower than overall average
             THEN 'High-rated Low Sales'
         ELSE NULL
     END AS category
-FROM game_critic_sales, avg_sales											 -- cross join of a scalar value (implicitly joins every single row)
+FROM game_critic_sales, avg_sales									
 WHERE (avg_critic_score <= 4 AND total_sales > overall_avg_sales) OR
 	  (avg_critic_score >= 8 AND total_sales < overall_avg_sales)
 ORDER BY avg_critic_score DESC;
@@ -783,7 +787,7 @@ UNION ALL									-- Union All to return all rows
 UNION ALL
 
 	SELECT
-		'Europe & Africa' AS region,
+		'Europe & Australia' AS region,
 		genre,
 		SUM(pal_sales) AS total_sales,
 		COUNT(DISTINCT title) AS n_genres
@@ -839,6 +843,6 @@ WHERE rnk <= 3;										       -- returns top 3 genres per region
 1. Publishers should continue investing in established franchises like Grand Theft Auto and Call of Duty, which have consistently dominated sales.
 2. Releasing games on multiple platforms can significantly boost overall sales, as seen with Activision and Rockstar Games. Investors should prioritize companies that focus on cross-platform compatibility.
 3. The decline in traditional video game sales after 2008 suggests shifting consumer behavior. Hence, publishers and investors should explore emerging markets. 
-4. Games with high critic scores generally perform well in sales, so publishers should prioritize quality assurance, engaging storytelling, and polished gameplay.
+4. Games with high critic scores generally perform well in sales, so publishers should prioritize quality assurance and polished gameplay to ensure success.
 5. Publishers should implement frequent game updates and remastered versions—especially for highly successful franchises. Meanwhile, investors should focus on backing companies that have successfully implemented continuous updates to extend a game’s lifecycle and revenue stream.
 6. Publishers should focus on expanding on Sports and Action genres since these are the most profitable globally, while still tailoring content for different regional markets.
