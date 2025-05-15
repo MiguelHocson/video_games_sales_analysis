@@ -1,4 +1,4 @@
-# SQL Project: Video Games Sales Analysis
+# Video Games Sales Analysis
 
 # Overview
 
@@ -84,8 +84,7 @@ CREATE TABLE vg_sales(
 PSQL command to insert the data into PostgreSQL
 -- =========================================================
 
-\copy public.vg_sales(title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update) FROM 'C:/Users/File_Pathway' WITH (FORMAT csv, HEADER, DELIMITER ',', ENCODING 'UTF8', QUOTE '"', ESCAPE '''');![image](https://github.com/user-attachments/assets/defd3ea7-ef3a-42db-aedd-68781c921987)
-
+\copy public.vg_sales(title, console, genre, publisher, developer, critic_score, total_sales, na_sales, jp_sales, pal_sales, other_sales, release_date, last_update) FROM 'C:/Users/File_Pathway' WITH (FORMAT csv, HEADER, DELIMITER ',', ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
 
 ```  
 
